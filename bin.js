@@ -57,7 +57,9 @@ if (process.platform === "win32") { // windows
     }
 }
 bdFolder += "/BetterDiscord/"
-const template = fs.readFileSync(path.join(__dirname, "scripts", args.packLib ? "template.remote.js" : "template.local.js")).toString();
+const template = fs.readFileSync(
+    path.join(process.cwd(), "node_modules/pluginlibrary/scripts", args.packLib ? "template.remote.js" : "template.local.js")
+).toString();
 
 function formatString(string, values) {
     for (const val in values) string = string.replace(new RegExp(`{{${val}}}`, "g"), () => values[val]);
@@ -100,6 +102,7 @@ async function packplugin(pluginPath) {
         INNER: content,
         WEBSITE: config.info.github,
         SOURCE: config.info.github_raw,
+        // TODO: remove if undefined
         PATREON: config.info.patreonLink,
         PAYPAL: config.info.paypalLink,
         AUTHOR_LINK: config.info.authorLink,
@@ -107,8 +110,11 @@ async function packplugin(pluginPath) {
         INSTALL_SCRIPT: args.addInstallScript ? require(path.join(__dirname, "scripts", "installscript.js")) : ""
     });
     if (args.addInstallScript) result = result + "\n/*@end@*/";
+    // node wont create folders on its own
+    if (!fs.existsSync(args.releaseFolder))
+        fs.mkdirSync(args.releaseFolder, { recursive: true })
     // write result
-    const buildFile = path.join(formatString(args.releaseFolder, {PLUGIN_NAME: pluginName}), pluginName + ".plugin.js");
+    const buildFile = path.join(args.releaseFolder, pluginName + ".plugin.js");
     fs.writeFileSync(buildFile, result);
     // copy to BD if needed
     if (args.copyToBD) {
