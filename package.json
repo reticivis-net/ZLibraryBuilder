@@ -1,0 +1,33 @@
+{
+  "name": "zlibrarybuilder",
+  "version": "1.0.0",
+  "description": "A Node.js module that makes building BetterDiscord plugins based off rauenzi's ZLibrary easy!",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HexCodeFFF/ZLibraryNode"
+  },
+  "dependencies": {
+    "commander": "^9.0.0",
+    "pluginlibrary": "github:rauenzi/BDPluginLibrary"
+  },
+  "scripts": {
+    "bin": "node ./bin.js"
+  },
+  "author": "HexCodeFFF",
+  "eslintIgnore": [
+    "scripts/template*"
+  ],
+  "main": "./bin.js",
+  "bin": "node ./bin.js",
+  "devDependencies": {
+    "foodoc": "^0.0.9",
+    "jsdoc": "^3.6.7",
+    "mocha": "^9.1.4",
+    "raw-loader": "^4.0.2",
+    "webpack": "^5.66.0",
+    "webpack-cli": "^4.9.1",
+    "@babel/core": "^7.16.10",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/register": "^7.16.9"
+  }
+}
