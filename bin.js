@@ -42,6 +42,9 @@ for (const source of [defaults,
     ) {
     args = Object.assign(args, source)
 }
+
+// below code adapted from github:rauenzi/BDPluginLibrary/scripts/build.js
+
 // replaced the original ternary mess with if-else because i cannot stand it
 // get betterdiscord folder
 let bdFolder;
@@ -57,8 +60,10 @@ if (process.platform === "win32") { // windows
     }
 }
 bdFolder += "/BetterDiscord/"
+
+// grabbing from module to hopefully dynamically be able to update as needed, maybe breaking?
 const template = fs.readFileSync(
-    path.join(process.cwd(), "node_modules/pluginlibrary/scripts", args.packLib ? "template.remote.js" : "template.local.js")
+    path.join("node_modules/pluginlibrary/scripts", args.packLib ? "template.remote.js" : "template.local.js")
 ).toString();
 
 function formatString(string, values) {
@@ -92,7 +97,7 @@ async function packplugin(pluginPath) {
     // get name from config
     const pluginName = (config.name || path.basename(pluginPath)).replace(" ", "")
     console.log(`Building ${pluginName} from ${configPath}`);
-    // embed needed files
+    // embed all files
     const files = fs.readdirSync(pluginPath).filter(f => f !== "config.json" && f !== config.main);
     const content = embedFiles(pluginPath, require(path.join(pluginPath, config.main)).toString(), pluginName, files);
     // "build" plugin
