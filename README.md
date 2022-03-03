@@ -1,80 +1,123 @@
-# PluginLibrary - [Download][download] [![Build Status][travis-badge]][travis-link] [![Language Grade][lgtm-badge]][lgtm-link] [![Patreon][patreon-badge]][patreon-link] [![Paypal][paypal-badge]][paypal-link]
+# ZLibraryBuilder
 
-[patreon-badge]: https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.herokuapp.com%2FZerebos&style=flat-square
-[patreon-link]: https://patreon.com/Zerebos
+A Node.js module that makes building [BetterDiscord](https://betterdiscord.app/) plugins based
+off [rauenzi's ZLibrary](https://github.com/rauenzi/BDPluginLibrary) easy!
 
-[paypal-badge]: https://img.shields.io/badge/Paypal-Donate!-%2300457C.svg?logo=paypal&style=flat-square
-[paypal-link]: https://paypal.me/ZackRauen
+## abstract
 
-[lgtm-badge]: https://img.shields.io/lgtm/grade/javascript/g/rauenzi/BDPluginLibrary.svg?style=flat-square
-[lgtm-link]: https://lgtm.com/projects/g/rauenzi/BDPluginLibrary/context:javascript
+[BDPluginLibrary AKA ZLibrary AKA Zere's Plugin Library AKA 0PluginLibrary](https://github.com/rauenzi/BDPluginLibrary)
+is an extremely common tool for creating plugins for BetterDiscord, making life so much easier. However, the process
+to "build" a plugin is annoying to say the least. This project breaks away just the build scripts and adapts them to
+work neatly as a CLI node module!
 
-[travis-badge]: https://img.shields.io/travis/rauenzi/BDPluginLibrary.svg?&style=flat-square&branch=master
-[travis-link]: https://travis-ci.org/rauenzi/BDPluginLibrary
+## example usage
 
-[download]: https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js
+### default build
 
-This is the repo for Zere's Plugin Library for BetterDiscord. For now this is only for BBD/BDv1 You can follow development here. There will be more info and shit to come, but for now here ya go.
-
-## Library Documentation
-
-View the library documentation here: [https://rauenzi.github.io/BDPluginLibrary/docs](https://rauenzi.github.io/BDPluginLibrary/docs)
-
-The information below is just a quickstart guide and overview on using the build scripts provided.
-
-## Building The Lib
-
-```
-npm install
-npm run build
+```shell
+zlibrarybuilder
 ```
 
-This generates a BD compatible `./release/0PluginLibrary.plugin.js` file to be added to your plugins folder.
+builds the *single* plugin contained inside the `plugins` folder, outputs to the `release` folder
 
-## Configuration
+### build one plugin
 
-The library is configurable with the default configuration found in the `package.json`. If you want to alter or extend these settings it's recommended that you create a `config.json` in the root directory that the build scripts will read and use. Note that this is merged with the default configuration so you don't have to include all the possible settings in the `config.json`.
+```shell
+zlibrarybuilder --pluginFolder ./plugin -ci
+```
 
-### Options
+builds the plugin contained inside the `plugin` folder, adds the install script (`-i`) and copies it to
+BetterDiscord (`-c`)
 
-#### `pluginsFolder`
-Absolute or relative path to the folder containing the plugins that build scripts can build automatically.
+### backwards compatibility/build multiple plugins
 
-**Default**: `"./plugins"`
+```shell
+zlibrarybuilder --pluginFolder ./plugins -cim
+```
 
-***
+the `-m` argument makes it build all plugins inside the folder, like the default ZLibrary `build.js` script does.
 
-#### `releaseFolder`
+### JSON
+
+`package.json`
+
+```json5
+{
+  "name": "myplugin",
+  "dependencies": {
+    "zlibrarybuilder": "^1.0.0",
+    // ... (other dependencies)
+  },
+  // ... (other package.json stuff)
+  "defaultConfig": {
+    "pluginFolder": "./plugin",
+    "copyToBD": true,
+    "addInstallScript": true
+  }
+}
+```
+
+```shell
+zlibrarybuilder
+```
+
+this example has the same end behavior as [the "build one plugin" example above](#build-one-plugin)
+
+## config
+
+### how
+
+there are several ways to specify config options to enable both ease of use and backwards compatibility. all options are
+the same, just specified differently. options are found in this order, first ones take priority:
+
+- `config.json` file at the root of your project
+- `defaultConfig` option in your `package.json`
+- options specified via CLI
+- default options
+
+### options
+
+options are listed via their CLI usage, use the **long name** as a key in either JSON file to specify it from there.
+
+#### `-p, --pluginFolder <folder>`
+
+default: `./plugins`
+
+Absolute or relative path to the folder containing the plugin(s) that build scripts can build automatically.
+
+#### `-r, --releaseFolder <folder>`
+
+default: `./release`
+
 Absolute or relative path to the folder where plugins that are built should be placed.
 
-**Default**: `"./release"`
+#### `-c, --copyToBD`
 
-***
+default: `false`
 
-#### `copyToBD`
-Boolean to determine if the built plugin should also be automatically copied over to your BD plugins directory. Very convenient for development.
+Boolean to determine if the built plugin should also be automatically copied over to your BD plugins directory. Very
+convenient for development.
 
-**Default**: `false`
+#### `-i, --addInstallScript`
 
-***
+default: `false`
 
-#### `addInstallScript`
-Boolean to determine if the plugin should include the Windows Host Script install script. This means that users on Windows that double click the plugin will be prompted to automatically install the plugin.
+Boolean to determine if the plugin should include the Windows Host Script install script. This means that users on
+Windows that double click the plugin will be prompted to automatically install the plugin.
 
-**Default**: `false`
+#### `-p, --packLib`
 
-***
+default: `false`
 
-## Building Plugins
+Boolean to include all lib functions into the plugin file.
 
-See the example plugin in `examples/ExamplePlugin`. Note how it does not check for updates in `onStart` instead the base class `Plugin` automatically checks for updates using the `github_raw` in the `config.json`.
+#### `-m, --multiPlugin`
 
-All plugin styles will set the meta using the plugin name for `name`. `github` and `github_raw` will be used as `website` and `source` options in the meta.
+default: `false`
 
-### Plugins Using Lib Plugin (recommended)
+Boolean to re-enable the default behavior of ZLibrary, which is trying to build all plugins in the pluginFolder. If
+disabled, will assume pluginFolder is the path to one plugin.
 
-To build all plugins in `plugins` folder, run `npm run build_plugin`. To build a single plugin run `npm run build_plugin PluginName`. This will yield `PluginName.plugin.js` in the `releases` folder with the same meta as outlined in the template. The resulting file will automatically check if the plugin library exists, and alert the user if it does not giving them a link to download it.
+#### `-h, --help`
 
-### Plugins w/ Packed Lib (larger file sizes)
-
-To pack a plugin run `npm run build_plugin_packed PluginName`. This will produce a single `PluginName.plugin.js` file in the `releases` folder with the basic meta up top. This version will include all lib functions internally. To pack all plugins in the `plugins` folder run `npm run build_plugin_packed` without arguments.
+display help for command. won't do anything if specified via JSON.

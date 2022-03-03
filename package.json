@@ -7,8 +7,7 @@
     "url": "https://github.com/HexCodeFFF/ZLibraryNode"
   },
   "dependencies": {
-    "commander": "^9.0.0",
-    "pluginlibrary": "github:rauenzi/BDPluginLibrary"
+    "commander": "^9.0.0"
   },
   "scripts": {
     "bin": "node ./bin.js"
@@ -20,6 +19,7 @@
   "main": "./bin.js",
   "bin": "node ./bin.js",
   "devDependencies": {
+    "pluginlibrary": "github:rauenzi/BDPluginLibrary",
     "foodoc": "^0.0.9",
     "jsdoc": "^3.6.7",
     "mocha": "^9.1.4",

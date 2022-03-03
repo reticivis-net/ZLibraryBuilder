@@ -7,12 +7,12 @@ program
     .name("zlibrary")
     .description("Build BetterDiscord plugins dependent on Zere's Plugin Library.\n" +
         "Will first attempt to search for a config.json, then a defaultConfig field of package.json before using CLI args.")
-    .option('-p, --pluginsFolder <folder>', 'Absolute or relative path to the folder containing the plugins that build scripts can build automatically.')
+    .option('-p, --pluginFolder <folder>', 'Absolute or relative path to the folder containing the plugins that build scripts can build automatically.')
     .option('-r, --releaseFolder <folder>', 'Absolute or relative path to the folder where plugins that are built should be placed.')
     .option("-c, --copyToBD", "Boolean to determine if the built plugin should also be automatically copied over to your BD plugins directory. Very convenient for development.",)
     .option("-i, --addInstallScript", "Boolean to determine if the plugin should include the Windows Host Script install script. This means that users on Windows that double click the plugin will be prompted to automatically install the plugin.")
     .option("-p, --packLib", "Boolean to include all lib functions into the plugin file.")
-    .option("-m, --multiPlugin", "Boolean to re-enable the default behavior of ZLibrary, which is trying to build all plugins in the pluginsFolder. If disabled, will assume pluginsFolder is the path to one plugin.");
+    .option("-m, --multiPlugin", "Boolean to re-enable the default behavior of ZLibrary, which is trying to build all plugins in the pluginFolder. If disabled, will assume pluginFolder is the path to one plugin.");
 program.parse();
 const cliopts = program.opts()
 
@@ -26,7 +26,7 @@ function requireifexists(file) {
 }
 
 const defaults = {
-    pluginsFolder: './plugins',
+    pluginFolder: './plugins',
     releaseFolder: './release',
     copyToBD: false,
     addInstallScript: false,
@@ -61,9 +61,11 @@ if (process.platform === "win32") { // windows
 }
 bdFolder += "/BetterDiscord/"
 
-// grabbing from module to hopefully dynamically be able to update as needed, maybe breaking?
+
 const template = fs.readFileSync(
-    path.join("node_modules/pluginlibrary/scripts", args.packLib ? "template.remote.js" : "template.local.js")
+    // grabbing from module to hopefully dynamically be able to update as needed, maybe breaking?
+    // path.join("node_modules/pluginlibrary/scripts", args.packLib ? "template.remote.js" : "template.local.js")
+    path.join(__dirname, "scripts", args.packLib ? "template.remote.js" : "template.local.js")
 ).toString();
 
 function formatString(string, values) {
@@ -136,12 +138,12 @@ async function main() {
     if (args.multiPlugin) {
         // try to pack all directories of pluginfolder if that's what the user wants
 
-        for (const plugin of fs.readdirSync(path.join(process.cwd(), args.pluginsFolder))
-            .filter(f => fs.lstatSync(path.join(args.pluginsFolder, f)).isDirectory())) {
-            await packplugin(path.join(process.cwd(), args.pluginsFolder, plugin))
+        for (const plugin of fs.readdirSync(path.join(process.cwd(), args.pluginFolder))
+            .filter(f => fs.lstatSync(path.join(args.pluginFolder, f)).isDirectory())) {
+            await packplugin(path.join(process.cwd(), args.pluginFolder, plugin))
         }
     } else {
-        await packplugin(args.pluginsFolder)
+        await packplugin(args.pluginFolder)
     }
     console.timeEnd("Build took");
 }
