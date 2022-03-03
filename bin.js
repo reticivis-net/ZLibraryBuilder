@@ -14,7 +14,7 @@ program
     .option("-i, --addInstallScript", "Boolean to determine if the plugin should include the Windows Host Script install script. This means that users on Windows that double click the plugin will be prompted to automatically install the plugin.")
     .option("-p, --packLib", "Boolean to include all lib functions into the plugin file.")
     .option("-m, --multiPlugin", "Boolean to re-enable the default behavior of ZLibrary, which is trying to build all plugins in the pluginFolder. If disabled, will assume pluginFolder is the path to one plugin.")
-    .option("-h, --oldHeader", "Boolean to re-enable the default ZLibrary plugin header generation. Leave disabled to pass all plugin `config.info` keys as JSDoc entries, allowing full control.");
+    .option("-o, --oldHeader", "Boolean to re-enable the default ZLibrary plugin header generation. Leave disabled to pass all plugin `config.info` keys as JSDoc entries, allowing full control.");
 program.parse();
 const cliopts = program.opts()
 
@@ -105,6 +105,8 @@ function buildheader(name, config) {
     for (let [prop, value] of Object.entries(config)) {
         // blank/undefined is CRINGE
         if (!value) continue
+        // has to be list for ZLib, but cant be JSDoced zadly
+        if (prop === "authors") continue
 
         header += ` * @${prop} ${value}\n`
     }
@@ -145,6 +147,16 @@ async function packplugin(pluginPath) {
     } else {
         // magic new generation!
         header = buildheader(pluginName, config.info);
+        if (!config.info.authors && config.info.author) {
+            let author = {
+                "name": config.info.author
+            }
+            if (config.info.authorId) {
+                author["discord_id"] = config.info.authorId
+            }
+            config.info.authors = [author]
+        }
+        console.log(config)
     }
     let result = formatString(template, {
         PLUGIN_NAME: config.info.name || pluginName,

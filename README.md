@@ -144,6 +144,10 @@ this option only exists for backwards compatability. Leave disabled for the impr
 plugin `config.info` keys as JSDoc entries.
 [View the official BetterDiscord docs for more info about these.](https://github.com/BetterDiscord/BetterDiscord/wiki/Plugin-and-Theme-METAs#common-fields)
 
+keep in mind that the ZLibrary `authors` field overwrites the `author` and `authorId` properties. ZLibraryBuilder (when
+oldHeader is off) attempts to convert these into the correct ZLibrary config options if `authors` is unspecified, but it
+is better to just work with ZLibrary.
+
 #### `-h, --help`
 
 display help for command. won't do anything if specified via JSON.
