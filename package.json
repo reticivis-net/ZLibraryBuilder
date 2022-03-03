@@ -1,6 +1,6 @@
 {
   "name": "zlibrarybuilder",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A Node.js module that makes building BetterDiscord plugins based off rauenzi's ZLibrary easy!",
   "repository": {
     "type": "git",
