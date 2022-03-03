@@ -40,16 +40,19 @@ builds the *single* plugin contained inside the `plugins` folder, outputs to the
 zlibrarybuilder --pluginFolder ./plugin -ci
 ```
 
-builds the plugin contained inside the `plugin` folder, adds the install script (`-i`) and copies it to
-BetterDiscord (`-c`)
+builds the plugin contained inside the `plugin` folder, adds the install script ([`-i`](#-i---addinstallscript)) and
+copies it to BetterDiscord ([`-c`](#-c---copytobd))
 
 ### backwards compatibility/build multiple plugins
 
 ```shell
-zlibrarybuilder --pluginFolder ./plugins -cim
+zlibrarybuilder --pluginFolder ./plugins -cimo
 ```
 
-the `-m` argument makes it build all plugins inside the folder, like the default ZLibrary `build.js` script does.
+the [`-m`](#-m---multiplugin) argument makes it build all plugins inside the folder, like the default
+ZLibrary `build.js` script does.
+
+the [`-o`](#-o---oldheader) argument is for backwards compatability, as this library changes some compilation behavior.
 
 ### JSON
 
@@ -131,6 +134,15 @@ default: `false`
 
 Boolean to re-enable the default behavior of ZLibrary, which is trying to build all plugins in the pluginFolder. If
 disabled, will assume pluginFolder is the path to one plugin.
+
+#### `-o, --oldHeader`
+
+default: `false`
+
+Boolean to re-enable the normal ZLibrary plugin header generation. The existing generation was strange and limited, and
+this option only exists for backwards compatability. Leave disabled for the improved behavior, passing all
+plugin `config.info` keys as JSDoc entries.
+[View the official BetterDiscord docs for more info about these.](https://github.com/BetterDiscord/BetterDiscord/wiki/Plugin-and-Theme-METAs#common-fields)
 
 #### `-h, --help`
 

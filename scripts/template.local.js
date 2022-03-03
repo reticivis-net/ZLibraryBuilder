@@ -1,13 +1,4 @@
-/**
- * @name {{PLUGIN_NAME}}
- * @version {{VERSION}}
- * @invite {{INVITE_CODE}}
- * @authorLink {{AUTHOR_LINK}}
- * @donate {{PAYPAL}}
- * @patreon {{PATREON}}
- * @website {{WEBSITE}}
- * @source {{SOURCE}}
- */
+{{HEADER}}
 {{INSTALL_SCRIPT}}
 module.exports = (() => {
     const config = {{CONFIG}};

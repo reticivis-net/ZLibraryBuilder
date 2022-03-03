@@ -1,4 +1,4 @@
-//META{"name":"{{PLUGIN_NAME}}","displayName":"{{PLUGIN_NAME}}","website":"{{WEBSITE}}","source":"{{SOURCE}}"}*//
+{{HEADER}}
 {{INSTALL_SCRIPT}}
 var {{PLUGIN_NAME}} = (() => {
 	if (!global.ZLibrary && !global.ZLibraryPromise) global.ZLibraryPromise = new Promise((resolve, reject) => {

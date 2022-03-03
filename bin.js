@@ -13,7 +13,8 @@ program
     .option("-c, --copyToBD", "Boolean to determine if the built plugin should also be automatically copied over to your BD plugins directory. Very convenient for development.",)
     .option("-i, --addInstallScript", "Boolean to determine if the plugin should include the Windows Host Script install script. This means that users on Windows that double click the plugin will be prompted to automatically install the plugin.")
     .option("-p, --packLib", "Boolean to include all lib functions into the plugin file.")
-    .option("-m, --multiPlugin", "Boolean to re-enable the default behavior of ZLibrary, which is trying to build all plugins in the pluginFolder. If disabled, will assume pluginFolder is the path to one plugin.");
+    .option("-m, --multiPlugin", "Boolean to re-enable the default behavior of ZLibrary, which is trying to build all plugins in the pluginFolder. If disabled, will assume pluginFolder is the path to one plugin.")
+    .option("-h, --oldHeader", "Boolean to re-enable the default ZLibrary plugin header generation. Leave disabled to pass all plugin `config.info` keys as JSDoc entries, allowing full control.");
 program.parse();
 const cliopts = program.opts()
 
@@ -32,7 +33,8 @@ const defaults = {
     copyToBD: false,
     addInstallScript: false,
     packLib: false,
-    multiPlugin: false
+    multiPlugin: false,
+    oldHeader: false
 }
 // figure out what args to actually use, prioritize json over CLI, use defaults if needed
 let args = {}
@@ -89,6 +91,27 @@ function embedFiles(pluginPath, content, pluginName, files) {
     return content;
 }
 
+// (naively) pass the `config.info` straight to the JSDoc
+function buildheader(name, config) {
+    if (!config) return "";
+    // name field is required
+    if (!config.name) {
+        config.name = name
+    }
+    // spaces in plugin names cause epic compilation failures?
+    config.name = config.name.replace("\n", "").replace(" ", "")
+
+    let header = `/**\n`;
+    for (let [prop, value] of Object.entries(config)) {
+        // blank/undefined is CRINGE
+        if (!value) continue
+
+        header += ` * @${prop} ${value}\n`
+    }
+    header += ` */`
+    return header
+}
+
 async function packplugin(pluginPath) {
     // get plugin config
     pluginPath = path.resolve(process.cwd(), pluginPath)
@@ -99,25 +122,35 @@ async function packplugin(pluginPath) {
     }
     const config = require(configPath);
     // get name from config
-    const pluginName = (config.name || config.info.name || path.basename(pluginPath)).replace(" ", "")
+    const pluginName = (config.info.name || path.basename(pluginPath)).replace(" ", "")
     console.log(`Building ${pluginName} from ${configPath}`);
     // embed all files
     const files = fs.readdirSync(pluginPath).filter(f => f !== "config.json" && f !== config.main);
     const pluginrequire = require(path.join(pluginPath, config.main))
     const content = embedFiles(pluginPath, (pluginrequire.default || pluginrequire).toString(), pluginName, files);
     // "build" plugin
+    let header;
+    if (args.oldHeader) {
+        // backwards compatability i guess?
+        header = buildheader(pluginName, {
+            "name": config.info.name || pluginName,
+            "version": config.info.version || "", // this wasnt even in the original build script but COME ONNNN
+            "website": config.info.github || "",
+            "source": config.info.github_raw || "",
+            "patreon": config.info.patreonLink || "",
+            "donate": config.info.paypalLink || "",
+            "authorLink": config.info.authorLink || "",
+            "invite": config.info.inviteCode || "",
+        });
+    } else {
+        // magic new generation!
+        header = buildheader(pluginName, config.info);
+    }
     let result = formatString(template, {
-        PLUGIN_NAME: pluginName,
+        PLUGIN_NAME: config.info.name || pluginName,
         CONFIG: JSON.stringify(config),
         INNER: content,
-        VERSION: config.info.version || "",
-        WEBSITE: config.info.github || "",
-        SOURCE: config.info.github_raw || "",
-        // TODO: remove if undefined
-        PATREON: config.info.patreonLink || "",
-        PAYPAL: config.info.paypalLink || "",
-        AUTHOR_LINK: config.info.authorLink || "",
-        INVITE_CODE: config.info.inviteCode || "",
+        HEADER: header,
         INSTALL_SCRIPT: args.addInstallScript ? require(path.join(__dirname, "scripts", "installscript.js")) : ""
     });
     if (args.addInstallScript) result = result + "\n/*@end@*/";
