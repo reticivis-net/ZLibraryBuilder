@@ -17,7 +17,9 @@
     "scripts/template*"
   ],
   "main": "./bin.js",
-  "bin": "node ./bin.js",
+  "bin": {
+    "zlibrarybuilder": "./bin.js"
+  },
   "devDependencies": {
     "pluginlibrary": "github:rauenzi/BDPluginLibrary",
     "foodoc": "^0.0.9",
