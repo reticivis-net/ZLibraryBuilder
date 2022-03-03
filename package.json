@@ -21,6 +21,6 @@
     "zlibrarybuilder": "./bin.js"
   },
   "devDependencies": {
-    "pluginlibrary": "github:rauenzi/BDPluginLibrary",
+    "pluginlibrary": "github:rauenzi/BDPluginLibrary"
   }
 }
