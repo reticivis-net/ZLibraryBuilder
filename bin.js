@@ -91,6 +91,7 @@ function embedFiles(pluginPath, content, pluginName, files) {
 
 async function packplugin(pluginPath) {
     // get plugin config
+    pluginPath = path.resolve(process.cwd(), pluginPath)
     const configPath = path.join(pluginPath, "config.json");
     if (!fs.existsSync(configPath)) {
         console.error(`Could not find "${configPath}". Skipping...`);
@@ -98,29 +99,31 @@ async function packplugin(pluginPath) {
     }
     const config = require(configPath);
     // get name from config
-    const pluginName = (config.name || path.basename(pluginPath)).replace(" ", "")
+    const pluginName = (config.name || config.info.name || path.basename(pluginPath)).replace(" ", "")
     console.log(`Building ${pluginName} from ${configPath}`);
     // embed all files
     const files = fs.readdirSync(pluginPath).filter(f => f !== "config.json" && f !== config.main);
-    const content = embedFiles(pluginPath, require(path.join(pluginPath, config.main)).toString(), pluginName, files);
+    const pluginrequire = require(path.join(pluginPath, config.main))
+    const content = embedFiles(pluginPath, (pluginrequire.default || pluginrequire).toString(), pluginName, files);
     // "build" plugin
     let result = formatString(template, {
         PLUGIN_NAME: pluginName,
         CONFIG: JSON.stringify(config),
         INNER: content,
-        WEBSITE: config.info.github,
-        SOURCE: config.info.github_raw,
+        VERSION: config.info.version || "",
+        WEBSITE: config.info.github || "",
+        SOURCE: config.info.github_raw || "",
         // TODO: remove if undefined
-        PATREON: config.info.patreonLink,
-        PAYPAL: config.info.paypalLink,
-        AUTHOR_LINK: config.info.authorLink,
-        INVITE_CODE: config.info.inviteCode,
+        PATREON: config.info.patreonLink || "",
+        PAYPAL: config.info.paypalLink || "",
+        AUTHOR_LINK: config.info.authorLink || "",
+        INVITE_CODE: config.info.inviteCode || "",
         INSTALL_SCRIPT: args.addInstallScript ? require(path.join(__dirname, "scripts", "installscript.js")) : ""
     });
     if (args.addInstallScript) result = result + "\n/*@end@*/";
     // node wont create folders on its own
     if (!fs.existsSync(args.releaseFolder))
-        fs.mkdirSync(args.releaseFolder, { recursive: true })
+        fs.mkdirSync(args.releaseFolder, {recursive: true})
     // write result
     const buildFile = path.join(args.releaseFolder, pluginName + ".plugin.js");
     fs.writeFileSync(buildFile, result);
