@@ -10,6 +10,20 @@ is an extremely common tool for creating plugins for BetterDiscord, making life 
 to "build" a plugin is annoying to say the least. This project breaks away just the build scripts and adapts them to
 work neatly as a CLI node module!
 
+## install
+
+[zlibrarybuilder is available on npm](https://www.npmjs.com/package/zlibrarybuilder)
+
+```shell
+npm i zlibrarybuilder --save-dev
+```
+
+or you can install it from the [github repo](https://github.com/HexCodeFFF/ZLibraryBuilder)
+
+```shell
+npm i https://github.com/HexCodeFFF/ZLibraryBuilder --save-dev
+```
+
 ## example usage
 
 ### default build
