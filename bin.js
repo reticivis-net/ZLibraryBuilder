@@ -147,6 +147,7 @@ async function packplugin(pluginPath) {
     } else {
         // magic new generation!
         header = buildheader(pluginName, config.info);
+        // zlibrary overrides JSDoc author with its own thing, if user (sensibly but naively) uses the BD fields, convert them to ZLib fields
         if (!config.info.authors && config.info.author) {
             let author = {
                 "name": config.info.author
