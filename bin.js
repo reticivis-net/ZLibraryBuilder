@@ -43,6 +43,7 @@ for (const source of [defaults,
     ) {
     args = Object.assign(args, source)
 }
+
 // below code adapted from github:rauenzi/BDPluginLibrary/scripts/build.js
 
 // replaced the original ternary mess with if-else because i cannot stand it
