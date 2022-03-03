@@ -66,7 +66,7 @@ the [`-o`](#-o---oldheader) argument is for backwards compatability, as this lib
     // ... (other dependencies)
   },
   // ... (other package.json stuff)
-  "defaultConfig": {
+  "buildConfig": {
     "pluginFolder": "./plugin",
     "copyToBD": true,
     "addInstallScript": true
@@ -87,9 +87,10 @@ this example has the same end behavior as [the "build one plugin" example above]
 there are several ways to specify config options to enable both ease of use and backwards compatibility. all options are
 the same, just specified differently. options are found in this order, first ones take priority:
 
-- `config.json` file at the root of your project
-- `defaultConfig` option in your `package.json`
 - options specified via CLI
+- `buildConfig` field in your `package.json`
+- `config.json` file at the root of your project
+- `defaultConfig` field in your `package.json`
 - default options
 
 ### options

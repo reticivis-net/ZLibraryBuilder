@@ -36,12 +36,16 @@ const defaults = {
     multiPlugin: false,
     oldHeader: false
 }
-// figure out what args to actually use, prioritize json over CLI, use defaults if needed
+// figure out what args to actually use, prioritize CLI over JSON, use defaults if needed
 let args = {}
-for (const source of [defaults,
-    cliopts,
-    requireifexists(path.join(process.cwd(), "./package.json")).defaultConfig,
-    requireifexists(path.join(process.cwd(), "./config.json"))]
+const packagejson = requireifexists(path.join(process.cwd(), "./package.json"))
+for (const source of [
+    defaults,
+    packagejson.defaultConfig,
+    requireifexists(path.join(process.cwd(), "./config.json")),
+    packagejson.buildConfig,
+    cliopts
+]
     ) {
     args = Object.assign(args, source)
 }
@@ -131,6 +135,8 @@ async function packplugin(pluginPath) {
     const pluginrequire = require(path.join(pluginPath, config.main))
     const content = embedFiles(pluginPath, (pluginrequire.default || pluginrequire).toString(), pluginName, files);
     // "build" plugin
+
+    // jsdoc header
     let header;
     if (args.oldHeader) {
         // backwards compatability i guess?
@@ -159,6 +165,7 @@ async function packplugin(pluginPath) {
         }
         console.log(config)
     }
+    // building is done at runtime via ZLib, all we need to do is load the proper stuff into the template
     let result = formatString(template, {
         PLUGIN_NAME: config.info.name || pluginName,
         CONFIG: JSON.stringify(config),
@@ -171,7 +178,8 @@ async function packplugin(pluginPath) {
     if (!fs.existsSync(args.releaseFolder))
         fs.mkdirSync(args.releaseFolder, {recursive: true})
     // write result
-    const buildFile = path.join(args.releaseFolder, pluginName + ".plugin.js");
+    // formatstring allows for dynamic folders, inherited from build.js
+    const buildFile = path.join(formatString(args.releaseFolder, {PLUGIN_NAME: pluginName}), pluginName + ".plugin.js");
     fs.writeFileSync(buildFile, result);
     // copy to BD if needed
     if (args.copyToBD) {
