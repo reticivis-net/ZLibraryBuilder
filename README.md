@@ -10,6 +10,12 @@ is an extremely common tool for creating plugins for BetterDiscord, making life 
 to "build" a plugin is annoying to say the least. This project breaks away just the build scripts and adapts them to
 work neatly as a CLI node module!
 
+## improvements over BDPluginLibrary's build.js
+
+- the main purpose of the module: able to be called and configured externally
+- [able to build just one plugin without embedding in a plugin folder](#build-one-plugin)
+- [dynamically embed external node modules into your plugin](#dynamic-node-module-embed)
+
 ## install
 
 [zlibrarybuilder is available on npm](https://www.npmjs.com/package/zlibrarybuilder)
@@ -152,3 +158,24 @@ is better to just work with ZLibrary.
 #### `-h, --help`
 
 display help for command. won't do anything if specified via JSON.
+
+## dynamic node module embed
+
+ZLibraryBuilder has the ability to automatically compile and embed external node.js modules into your plugin for you in
+2 easy steps
+
+1. make sure the module in question is installed in your node_modules
+2. add a comment so ZLibraryBuilder knows to replace the `require()`
+
+```js
+// this statement will remain unmodified
+require('ts-leaky-bucket');
+// zlibrarybuilder will replace this with the entire library code for you!
+require('ts-leaky-bucket' /* zlibrarybuilder embed */);
+```
+
+the reason that not all require calls are replaced by default is that discord itself is a node app and it is highly
+recommended to properly `require()` from discord's modules when possible
+
+**note:** ZLibraryBuilder naively replaces all (properly commented) `require()` calls with library embeds. if you
+require the module twice, it'll be in your plugin twice. please require it once to a variable and reuse the variable.

@@ -3,6 +3,8 @@
 const {program} = require('commander');
 const fs = require("fs");
 const path = require("path");
+const ncc = require('@vercel/ncc');
+
 // set up CLI
 program
     .name("zlibrary")
@@ -80,17 +82,55 @@ function formatString(string, values) {
     return string;
 }
 
-function embedFiles(pluginPath, content, pluginName, files) {
+async function replaceAsync(str, regex, asyncFn) {
+    const promises = [];
+    str.replace(regex, (match, ...args) => {
+        const promise = asyncFn(match, ...args);
+        promises.push(promise);
+    });
+    const data = await Promise.all(promises);
+    return str.replace(regex, () => data.shift());
+}
+
+async function embedFiles(pluginPath, content, pluginName, files) {
+    // dynamically compile node modules
+
+    // find all require statements that should be embedded
+    const requirepath = /require\( *['"`]([a-z0-9_@-]+)['"`] *\/\* *zlibrarybuilder embed *\*\/ *\)/gi
+    content = await replaceAsync(content, requirepath, async (arg, g1) => {
+        // guess where the package.json is
+        const modulebase = path.join(process.cwd(), "node_modules", g1)
+        let pjsn = path.join(modulebase, "package.json");
+        console.log(pjsn)
+        // if it exists, its probably a node module
+        if (fs.existsSync(pjsn)) {
+            // compile and replace
+            console.log(`detected node module ${g1}. compiling and embedding...`)
+            // find entry point
+            pjsn = path.resolve(modulebase, require(pjsn).main);
+            // compile
+            const {code, map, assets} = await ncc(pjsn)
+            console.log("compiled!")
+            // make it more like a function
+            // ncc seems to always output like this with the settings i'm using
+            return `${code.replace("module.exports = __webpack_exports__", "return __webpack_exports__")} /* ${arg} */`
+        } else { // probably not a node module
+            return arg
+        }
+    })
+
+    // port from build.js
     for (const fileName of files) {
-        content = content.replace(new RegExp(`require\\((['"\`])${fileName}(['"\`])\\)`, "g"), () => {
-            const filePath = path.join(pluginPath, fileName);
-            if (!fileName.endsWith(".js")) return `\`${fs.readFileSync(filePath).toString().replace(/\\/g, `\\\\`).replace(/\\\\\$\{/g, "\\${").replace(/`/g, "\\`")}\``;
-            const exported = require(filePath);
-            if (typeof (exported) !== "object" && !Array.isArray(exported)) return `(${require(filePath).toString()})`;
-            if (Array.isArray(exported)) return `(${JSON.stringify(exported)})`;
-            const raw = fs.readFileSync(filePath).toString().replace(/module\.exports\s*=\s*/, "");
-            return `(() => {return ${raw}})()`;
-        });
+        content = content.replace(new RegExp(`require\\((['"\`])${fileName}(['"\`])\\)`, "g"),
+            () => {
+                const filePath = path.join(pluginPath, fileName);
+                if (!fileName.endsWith(".js")) return `\`${fs.readFileSync(filePath).toString().replace(/\\/g, `\\\\`).replace(/\\\\\$\{/g, "\\${").replace(/`/g, "\\`")}\``;
+                const exported = require(filePath);
+                if (typeof (exported) !== "object" && !Array.isArray(exported)) return `(${require(filePath).toString()})`;
+                if (Array.isArray(exported)) return `(${JSON.stringify(exported)})`;
+                const raw = fs.readFileSync(filePath).toString().replace(/module\.exports\s*=\s*/, "return ");
+                return `(() => {return ${raw}})() /* ${filePath} */`;
+            });
     }
     return content;
 }
@@ -133,7 +173,7 @@ async function packplugin(pluginPath) {
     // embed all files
     const files = fs.readdirSync(pluginPath).filter(f => f !== "config.json" && f !== config.main);
     const pluginrequire = require(path.join(pluginPath, config.main))
-    const content = embedFiles(pluginPath, (pluginrequire.default || pluginrequire).toString(), pluginName, files);
+    const content = await embedFiles(pluginPath, (pluginrequire.default || pluginrequire).toString(), pluginName, files);
     // "build" plugin
 
     // jsdoc header
